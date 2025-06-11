@@ -42,7 +42,7 @@ def checkupdate(param):
             if data['latest'] == ver:
                 print("PyTerm is up to date.")
             else:
-                if ver in data['soon']:
+                if ver == data['soon']:
                     print("PyTerm is running a beta version, you may encounter bugs or instability.")
                 else:
                     print("PyTerm is outdated. Run \"update install\" to install the new update.")
@@ -54,7 +54,7 @@ def checkupdate(param):
         if data['latest'] == ver:
             updated = True
         else:
-            if ver in data['soon']:
+            if ver == data['soon']:
                 updated = True
             else:
                 updated = False
