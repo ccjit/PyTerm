@@ -9,12 +9,13 @@ cmds.sort()
 cmds.append('quit')
 print("OS: " + platform.system())
 print("Directory: " + os.getcwd())
-ver = "0.0.4.7-alpha"
+ver = "0.0.4.8-alpha"
 OS = platform.system()
 dir = os.getcwd()
 updateurl = "https://raw.githubusercontent.com/ccjit/PyTerm/refs/heads/main/main.py"
 versionsurl = "https://raw.githubusercontent.com/ccjit/PyTerm/refs/heads/main/versions.json"
 defaultdir = dir
+print("Default directory: " + defaultdir)
 debugging = False
 def debug(str: str):
     if debugging:
@@ -93,11 +94,11 @@ def checkupdate(param):
             if response.status_code == 200:
                 print("Updating...")
                 debug("Fetching files to add...")
-                file = urllib.request.urlretrieve(updateurl, defaultdir + "main.py")
+                file = urllib.request.urlretrieve(updateurl, defaultdir + "?main.py")
                 debug(file)
                 print("Updated!")
                 print("Restarting PyTerm...")
-                os.execv(sys.executable, ["python3"] + [defaultdir + "main.py"])
+                os.execv(sys.executable, ["python3"] + [defaultdir + "/main.py"])
             else:
                 print(f"Error {response.status_code} when trying to update.")
         
