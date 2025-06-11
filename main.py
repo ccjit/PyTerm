@@ -105,7 +105,7 @@ def checkupdate(param):
                 debug(file)
                 print("Updated!")
                 print("Restarting PyTerm...")
-                os.execv(sys.executable, ["python3"] + [defaultdir])
+                os.execv(sys.executable, ["python3"] + [defaultdir + "main.py"])
             else:
                 print(f"Error {response.status_code} when trying to update.")
         
