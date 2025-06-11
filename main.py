@@ -7,7 +7,7 @@ import urllib, json
 cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart']
 cmds.sort()
 cmds.append('quit')
-ver = "0.0.4.9-alpha"
+ver = "0.0.4.10-alpha"
 OS = platform.system()
 dir = os.getcwd()
 defaultdir = dir
@@ -101,11 +101,11 @@ def checkupdate(param):
             if response.status_code == 200:
                 print("Updating...")
                 debug("Fetching files to add...")
-                file = urllib.request.urlretrieve(updateurl, defaultdir + "main.py")
+                file = urllib.request.urlretrieve(updateurl, defaultdir)
                 debug(file)
                 print("Updated!")
                 print("Restarting PyTerm...")
-                os.execv(sys.executable, ["python3"] + [defaultdir + "main.py"])
+                os.execv(sys.executable, ["python3"] + [defaultdir])
             else:
                 print(f"Error {response.status_code} when trying to update.")
         
