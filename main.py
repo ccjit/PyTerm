@@ -7,7 +7,7 @@ import urllib, json
 cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart']
 cmds.sort()
 cmds.append('quit')
-ver = "0.0.4.10-alpha"
+ver = "0.0.4.11-alpha"
 OS = platform.system()
 dir = os.getcwd()
 defaultdir = dir
@@ -105,7 +105,7 @@ def checkupdate(param):
                 debug(file)
                 print("Updated!")
                 print("Restarting PyTerm...")
-                os.execv(sys.executable, ["python3"] + [defaultdir + "main.py"])
+                os.execv(sys.executable, ["python3"] + [defaultdir + "/main.py"])
             else:
                 print(f"Error {response.status_code} when trying to update.")
         
