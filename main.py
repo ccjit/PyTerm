@@ -4,18 +4,18 @@ import platform
 import requests
 import urllib.request
 import urllib, json
-cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug']
+cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart']
 cmds.sort()
 cmds.append('quit')
-print("OS: " + platform.system())
-print("Directory: " + os.getcwd())
-ver = "0.0.4.8-alpha"
+ver = "0.0.4.9-alpha"
 OS = platform.system()
 dir = os.getcwd()
+defaultdir = dir
+print("OS: " + platform.system())
+print("Directory: " + os.getcwd())
+print("Default Directory: " + defaultdir)
 updateurl = "https://raw.githubusercontent.com/ccjit/PyTerm/refs/heads/main/main.py"
 versionsurl = "https://raw.githubusercontent.com/ccjit/PyTerm/refs/heads/main/versions.json"
-defaultdir = dir
-print("Default directory: " + defaultdir)
 debugging = False
 def debug(str: str):
     if debugging:
@@ -62,13 +62,16 @@ def checkupdate(param):
             debug("Versions file loaded.")
             debug(data)
             debug("Checking for updates...")
-            if data['latest'] == ver:
+            if  ver == data['latest']:
                 print("PyTerm is up to date.")
             else:
                 if ver == data['soon']:
                     print("PyTerm is running a beta version, you may encounter bugs or instability.")
                 else:
-                    print("PyTerm is outdated. Run \"update install\" to install the new update.")
+                    if ver in data['previous']:
+                        print("PyTerm is outdated. Run \"update install\" to install the new update.")
+                    else: 
+                        print("You are running an unknown version of PyTerm. Run \"update install\" to install the latest version of PyTerm and to revert all changes you made to this file prior to updating.")
         else:
             print(f"Error {response.status_code}")
     elif param == 'install':
@@ -80,13 +83,17 @@ def checkupdate(param):
         debug(data)
         debug("Checking if PyTerm is already up to date...")
             
-        if data['latest'] == ver:
+        if ver == data['latest']:
             updated = True
         else:
             if ver == data['soon']:
                 updated = True
             else:
-                updated = False
+                if ver in data['previous']:
+                    updated = False
+                else: 
+                    updated = False
+
         response = requests.get(updateurl)
         if updated:
             print("PyTerm is already up to date!") 
@@ -94,11 +101,11 @@ def checkupdate(param):
             if response.status_code == 200:
                 print("Updating...")
                 debug("Fetching files to add...")
-                file = urllib.request.urlretrieve(updateurl, defaultdir + "/main.py")
+                file = urllib.request.urlretrieve(updateurl, defaultdir + "main.py")
                 debug(file)
                 print("Updated!")
                 print("Restarting PyTerm...")
-                os.execv(sys.executable, ["python3"] + [defaultdir + "/main.py"])
+                os.execv(sys.executable, ["python3"] + [defaultdir + "main.py"])
             else:
                 print(f"Error {response.status_code} when trying to update.")
         
@@ -128,6 +135,9 @@ while True:
         elif cmd == "quit":
             log("Quitting...")
             exit(0)
+        elif cmd == "restart":
+            log("Restarting PyTerm...")
+            os.execv(sys.executable, ["python3"] + [defaultdir + "main.py"])
         elif cmd == "debug":
             if debugging:
                 debugging = False
