@@ -3,12 +3,14 @@ import platform
 import requests
 import urllib.request
 import urllib, json
-cmds = ['ping', 'help', 'sys', 'update']
+cmds = ['ping', 'help', 'sys', 'update', 'about', 'quit']
 print("OS: " + platform.system())
 print("Directory: " + os.getcwd())
-ver = "0.0.2-alpha"
+ver = "0.0.3-alpha"
 OS = platform.system()
 dir = os.getcwd()
+updateurl = "https://raw.githubusercontent.com/ccjit/PyTerm/refs/heads/main/main.py"
+versionsurl = "https://raw.githubusercontent.com/ccjit/PyTerm/refs/heads/main/versions.json"
 defaultdir = dir
 def ping(ip):
     if ip == "-h":
@@ -33,22 +35,21 @@ def ping(ip):
             print(output)
 def checkupdate(param):
     if param == "":
-        response = requests.get("https://raw.githubusercontent.com/ccjit/PyTerm/refs/heads/main/versions.json")
+        response = requests.get(versionsurl)
         if response.status_code == 200:
-            # data = json.loads(response)
-            with urllib.request.urlopen("https://raw.githubusercontent.com/ccjit/PyTerm/refs/heads/main/versions.json") as file:
+            with urllib.request.urlopen(versionsurl) as file:
                 data = json.load(file)
             if data['latest'] == ver:
                 print("PyTerm is up to date.")
             else:
                 if ver in data['soon']:
-                    print("PyTerm is running a beta version, you may encounter bugs or instability")
+                    print("PyTerm is running a beta version, you may encounter bugs or instability.")
                 else:
                     print("PyTerm is outdated. Run \"update install\" to install the new update.")
         else:
             print(f"Error {response.status_code}")
     elif param == 'install':
-        with urllib.request.urlopen("https://raw.githubusercontent.com/ccjit/PyTerm/refs/heads/main/versions.json") as file:
+        with urllib.request.urlopen(versionsurl) as file:
             data = json.load(file)
         if data['latest'] == ver:
             updated = True
@@ -57,17 +58,15 @@ def checkupdate(param):
                 updated = True
             else:
                 updated = False
-        response = requests.get("https://raw.githubusercontent.com/ccjit/PyTerm/refs/heads/main/main.py")
+        response = requests.get(updateurl)
         if updated:
             print("PyTerm is already up to date!") 
         else:
             if response.status_code == 200:
-                file = urllib.request.urlretrieve("https://raw.githubusercontent.com/ccjit/PyTerm/refs/heads/main/main.py", "main.py")
+                file = urllib.request.urlretrieve(updateurl, "main.py")
                 print(file)
             else:
                 print(f"Error {response.status_code} when trying to update.")
-        
-        # with open(defaultdir + "main.py", "w") as file:
         
 while True:
     prompt = input(dir + "> ")
@@ -90,5 +89,10 @@ while True:
             log('Running on directory ' + dir)
         elif cmd == "update":
             checkupdate(substring)
+        elif cmd == "about":
+            log("PyTerm v" + ver + " - Made by ccjt in 2025")
+        elif cmd == "quit":
+            log("Quitting...")
+            exit(0)
     else:
         print("The command " + cmd + " does not exist. Use \"help\" to get a list of commands.")
