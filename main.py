@@ -11,9 +11,11 @@ ver = "0.0.4.11-alpha"
 OS = platform.system()
 dir = os.getcwd()
 defaultdir = dir
+installloc = defaultdir + "/main.py"
 print("OS: " + platform.system())
 print("Directory: " + os.getcwd())
 print("Default Directory: " + defaultdir)
+print("File located at: " + installloc)
 updateurl = "https://raw.githubusercontent.com/ccjit/PyTerm/refs/heads/main/main.py"
 versionsurl = "https://raw.githubusercontent.com/ccjit/PyTerm/refs/heads/main/versions.json"
 debugging = False
@@ -105,7 +107,7 @@ def checkupdate(param):
                 debug(file)
                 print("Updated!")
                 print("Restarting PyTerm...")
-                os.execv(sys.executable, ["python3"] + [defaultdir + "/main.py"])
+                os.execv(sys.executable, ["python3"] + [installloc])
             else:
                 print(f"Error {response.status_code} when trying to update.")
         
@@ -137,7 +139,7 @@ while True:
             exit(0)
         elif cmd == "restart":
             log("Restarting PyTerm...")
-            os.execv(sys.executable, ["python3"] + [defaultdir + "main.py"])
+            os.execv(sys.executable, ["python3"] + [installloc])
         elif cmd == "debug":
             if debugging:
                 debugging = False
