@@ -94,7 +94,7 @@ def checkupdate(param):
             if response.status_code == 200:
                 print("Updating...")
                 debug("Fetching files to add...")
-                file = urllib.request.urlretrieve(updateurl, defaultdir + "?main.py")
+                file = urllib.request.urlretrieve(updateurl, defaultdir + "/main.py")
                 debug(file)
                 print("Updated!")
                 print("Restarting PyTerm...")
