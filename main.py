@@ -9,7 +9,7 @@ cmds.sort()
 cmds.append('quit')
 print("OS: " + platform.system())
 print("Directory: " + os.getcwd())
-ver = "0.0.4.5-alpha"
+ver = "0.0.4.6-alpha"
 OS = platform.system()
 dir = os.getcwd()
 updateurl = "https://raw.githubusercontent.com/ccjit/PyTerm/refs/heads/main/main.py"
@@ -97,7 +97,7 @@ def checkupdate(param):
                 debug(file)
                 print("Updated!")
                 print("Restarting PyTerm...")
-                os.execv(__file__, sys.argv)
+                os.execv(sys.executable, "python3 " + defaultdir + "main.py")
             else:
                 print(f"Error {response.status_code} when trying to update.")
         
