@@ -4,10 +4,10 @@ import platform
 import requests
 import urllib.request
 import urllib, json
-cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir']
+cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', '@echo']
 cmds.sort()
 cmds.append('quit')
-ver = "0.0.5-alpha"
+ver = "0.0.6-alpha"
 OS = platform.system()
 dir = os.getcwd()
 defaultdir = dir
@@ -106,9 +106,12 @@ def checkupdate(param):
                 os.execv(sys.executable, ["python3"] + [installloc])
             else:
                 print(f"Error {response.status_code} when trying to update.")
-        
+echo = True  
 while True:
-    prompt = input(dir + "> ")
+    if echo:
+        prompt = input(dir + "> ")
+    else:
+        prompt = input("")
     args = prompt.split(' ')
     cmd = args[0]
     substring = prompt[len(cmd) + 1:]
@@ -144,6 +147,15 @@ while True:
             else:
                 debugging = True
                 log("Debugging is now on.")
+        elif cmd == "@echo":
+            if echo:
+                log("Command echo is now off.")
+                echo = False
+            else:
+                log("Command echo is now on.")
+                echo = True
+        elif cmd == "echo":
+            log(substring)
         elif cmd == "dir":
             print("  ".join(os.listdir()))
         elif cmd == "cd":
