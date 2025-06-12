@@ -4,10 +4,10 @@ import platform
 import requests
 import urllib.request
 import urllib, json
-cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart']
+cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir']
 cmds.sort()
 cmds.append('quit')
-ver = "0.0.4.11-alpha"
+ver = "0.0.4.12-alpha"
 OS = platform.system()
 dir = os.getcwd()
 defaultdir = dir
@@ -36,13 +36,9 @@ def ping(ip):
         '''
         print('Error 00 - deprecated command-parameter combo')
     else:
-        if OS == "Linux":
-            stream = os.popen(f'ping -c 4 {ip}')
-        elif OS == "Windows":
+        if OS == "Windows":
             stream = os.popen(f'ping /n 4 {ip}')
-        elif OS == "Darwin":
-            stream = os.popen(f'ping -c 4 {ip}')
-        elif OS == "FreeBSD":
+        else:
             stream = os.popen(f'ping -c 4 {ip}')
         debug("Pinging " + ip + " with 4 packets...")
         stream = os.popen(f'ping -c 4 {ip}')
@@ -148,5 +144,12 @@ while True:
             else:
                 debugging = True
                 log("Debugging is now on.")
+        elif cmd == "dir":
+            print("  ".join(os.listdir()))
+        elif cmd == "cd":
+            if len(args) == 1:
+                log("Please specify a directory to go to.")
+            else:
+                os.chdir(args[1])
     else:
         print("The command " + cmd + " does not exist. Use \"help\" to get a list of commands.")
