@@ -4,10 +4,10 @@ import platform
 import requests
 import urllib.request
 import urllib, json
-cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', '@echo']
+cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', '@echo', 'readll']
 cmds.sort()
 cmds.append('quit')
-ver = "0.0.7-alpha"
+ver = "0.0.8-alpha"
 OS = platform.system()
 dir = os.getcwd()
 defaultdir = dir
@@ -202,13 +202,25 @@ while True:
             if len(args) == 1:
                 log("Please specify a text file to read.")
             else:
-                if args[1] in os.listdir():
-                    if args[1].endswith(".txt"):
-                        with open(args[1], "r") as file:
+                onlyfiles = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
+                if substring in onlyfiles:
+                    if substring.endswith(".txt"):
+                        with open(substring, "r") as file:
                             content = file.read()
-                            print(content)
+                        print(content)
                     else:
                         log("File must be a .txt file!")
+                else:
+                    log("Error 02 - File not found")
+        elif cmd == "readll":
+            if len(args) == 1:
+                log("Please specify a file to read.")
+            else:
+                onlyfiles = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
+                if substring in onlyfiles:
+                    with open(substring, "r") as file:
+                        content = file.read()
+                    print(content)
                 else:
                     log("Error 02 - File not found")
         elif cmd == "create":
