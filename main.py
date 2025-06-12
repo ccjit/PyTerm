@@ -4,14 +4,14 @@ import platform
 import requests
 import urllib.request
 import urllib, json
-cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir']
+cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir']
 cmds.sort()
 cmds.append('quit')
-ver = "0.0.4.12-alpha"
+ver = "0.0.5-alpha"
 OS = platform.system()
 dir = os.getcwd()
 defaultdir = dir
-installloc = defaultdir + "/main.py"
+installloc = __file__
 print("OS: " + platform.system())
 print("Directory: " + os.getcwd())
 print("Default Directory: " + defaultdir)
@@ -150,6 +150,97 @@ while True:
             if len(args) == 1:
                 log("Please specify a directory to go to.")
             else:
-                os.chdir(args[1])
+                if args[1] == ";":
+                    debug("Going to default directory...")
+                    os.chdir(defaultdir)
+                    dir = os.getcwd()
+                else:
+                    if args[1] == "..":
+                        debug("Going down one folder...")
+                        os.chdir('..')
+                        dir = os.getcwd()
+                    else:
+                        if args[1] in os.listdir():
+                            os.chdir(os.getcwd() + "/" + args[1])
+                            dir = os.getcwd()
+                        else:
+                            log("Error 02.5 - Directory not found")
+        elif cmd == "read":
+            if len(args) == 1:
+                log("Please specify a text file to read.")
+            else:
+                if args[1] in os.listdir():
+                    if args[1].endswith(".txt"):
+                        with open(args[1], "r") as file:
+                            content = file.read()
+                            print(content)
+                    else:
+                        log("File must be a .txt file!")
+                else:
+                    log("Error 02 - File not found")
+        elif cmd == "create":
+            if len(args) == 1:
+                log("Please specify a file name to make a text file of.")
+            else:
+                if args[1] + ".txt" in os.listdir():
+                    log("You can't create a file with an existing file name! Use \"write\" to edit that file!")
+                else:
+                    with open(args[1] + ".txt", "w") as f:
+                        f.write("")
+        elif cmd == "mkdir":
+            if len(args) == 1:
+                log("Please specify a folder name to create.")
+            else:
+                invalid = [".", "/", "?", "\\", ";", ":"]
+                def callback(char):
+                    return char in substring
+                if any(callback(char) for char in invalid):
+                    log("Folder name contains invalid characters!")
+                else:
+                    os.mkdir(substring)
+        elif cmd == "deldir" or cmd == "rmdir":
+            if len(args) == 1:
+                log('Please specify a directory to delete.')
+            else:
+                if substring in installloc:
+                    log("Cannot delete directory that hosts self!")
+                else:
+                  try:
+                      os.rmdir(substring)
+                  except:
+                      log("PyTerm doesn't have permission to delete this directory!")
+                      
+        elif cmd == "write":
+            if len(args) < 3:
+                log("Please specify a file and contents to write to. Usage: \"write <file> '<contents>'\" (single quotes are required)")
+            else:
+                if prompt.count("'") < 2:
+                    log("The syntax of the command is invalid.")
+                else:
+                    if args[1] == os.path.basename(__file__):
+                        log("Cannot overwrite self!")
+                    else:
+                        with open(args[1], "w") as f:
+                            f.write(prompt.split("'")[1])
+        elif cmd == "append":
+            if len(args) < 3:
+                log("Please specify a file name and contents to append to the desired file. Usage: \"append <file> '<contents>'\" (single quotes are required)")
+            else:
+                if prompt.count("'") < 2:
+                    log("The syntax of the command is invalid.")
+                else:
+                    if args[1] == os.path.basename(__file__):
+                        log("Cannot append to self!")
+                    else:
+                        with open(args[1], "a") as f:
+                            f.write(prompt.split("'")[1])
+        elif cmd == "delete":
+            if len(args) == 1:
+                log("Please specify a file to delete.")
+            else:
+                if args[1] == os.path.basename(__file__):
+                    log("Cannot self destruct!")
+                else:
+                    os.remove(args[1])
     else:
         print("The command " + cmd + " does not exist. Use \"help\" to get a list of commands.")
