@@ -1,5 +1,5 @@
 # PyTerm
-PyTerm is a basic Python3 based terminal that runs in only 1 file, and is meant to stay tht way until it needs to change.
+PyTerm is a basic Python3 based shell that runs in only 1 file, and is meant to stay that way until it needs to change.
 PyTerm is a side-project of mine that I'll be working on, if I'm not focusing on Teal in that moment.
 
 # Platforms
