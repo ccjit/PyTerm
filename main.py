@@ -7,7 +7,7 @@ import urllib, json
 cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', '@echo']
 cmds.sort()
 cmds.append('quit')
-ver = "0.0.6.5-alpha"
+ver = "0.0.7-alpha"
 OS = platform.system()
 dir = os.getcwd()
 defaultdir = dir
@@ -107,6 +107,17 @@ def checkupdate(param):
                 os.execv(sys.executable, ["python3"] + [installloc])
             else:
                 print(f"Error {response.status_code} when trying to update.")
+    elif param == "changelog":
+        debug("Fetching versions file...")
+        debug("If your connection speed is low, this might take a while.")
+        with urllib.request.urlopen(versionsurl) as file:
+            debug("File fetched. Loading file...")
+            data = json.load(file)
+            debug("Loaded.")
+        debug(file)
+        print("Changelog for PyTerm version " + data['latest'] + ": " + data['changelog'])
+    else:
+        print("Unknown parameter")
 echo = True  
 while True:
     if echo:
@@ -158,7 +169,16 @@ while True:
         elif cmd == "echo":
             log(substring)
         elif cmd == "dir":
-            print("  ".join(os.listdir()))
+          onlyfiles = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
+          onlyfolders = [f for f in os.listdir(dir) if os.path.isdir(os.path.join(dir, f))]
+          if not len(onlyfiles) == 0:
+              print("---Files---")
+              print("  ".join(onlyfiles))
+          if not len(onlyfolders) == 0:
+              print("~~~Folders~~~")
+              print("  ".join(onlyfolders))
+          if len(onlyfiles) == 0 and len(onlyfolders) == 0:
+              print("(Empty)")
         elif cmd == "cd":
             if len(args) == 1:
                 log("Please specify a directory to go to.")
