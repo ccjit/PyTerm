@@ -7,7 +7,7 @@ import urllib, json
 cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', '@echo', 'readll', 'clear']
 cmds.sort()
 cmds.append('quit')
-ver = "0.0.10-alpha"
+ver = "0.0.11-alpha"
 OS = platform.system()
 dir = os.getcwd()
 defaultdir = dir
@@ -225,9 +225,12 @@ while True:
             else:
                 onlyfiles = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
                 if substring in onlyfiles:
-                    with open(substring, "r") as file:
-                        content = file.read()
-                    print(content)
+                    try: 
+                        with open(substring, "r") as file:
+                            content = file.read()
+                        print(content)
+                    except:
+                        log("Cannot read this file.")
                 else:
                     log("Error 02 - File not found")
         elif cmd == "create":
@@ -237,8 +240,11 @@ while True:
                 if args[1] + ".txt" in os.listdir():
                     log("You can't create a file with an existing file name! Use \"write\" to edit that file!")
                 else:
-                    with open(args[1] + ".txt", "w") as f:
-                        f.write("")
+                    if os.access(dir, os.W_OK):
+                        with open(args[1] + ".txt", "w") as f:
+                            f.write("")
+                    else:
+                        log("Cannot create file on a read-only directory.")
         elif cmd == "mkdir":
             if len(args) == 1:
                 log("Please specify a folder name to create.")
@@ -249,7 +255,10 @@ while True:
                 if any(callback(char) for char in invalid):
                     log("Folder name contains invalid characters!")
                 else:
-                    os.mkdir(substring)
+                    if os.access(dir, os.W_OK):
+                        os.mkdir(substring)
+                    else:
+                        log("Cannot create directory on a read-only directory.")
         elif cmd == "deldir" or cmd == "rmdir":
             if len(args) == 1:
                 log('Please specify a directory to delete.')
@@ -257,10 +266,10 @@ while True:
                 if substring in installloc:
                     log("Cannot delete directory that hosts self!")
                 else:
-                  try:
+                  if os.access(dir, os.W_OK):
                       os.rmdir(substring)
-                  except:
-                      log("PyTerm doesn't have permission to delete this directory!")
+                  else:
+                      log("Cannot delete directory on a read-only directory.")
                       
         elif cmd == "write":
             if len(args) < 3:
@@ -272,8 +281,14 @@ while True:
                     if args[1] == os.path.basename(__file__):
                         log("Cannot overwrite self!")
                     else:
-                        with open(args[1], "w") as f:
-                            f.write(prompt.split("'")[1])
+                        if os.access(dir, os.W_OK):
+                            try:
+                                with open(args[1], "w") as f:
+                                    f.write(prompt.split("'")[1])
+                            except:
+                                log("Couldn't write to file.")
+                        else:
+                            log("Cannot write to file on a read-only directory!")
         elif cmd == "append":
             if len(args) < 3:
                 log("Please specify a file name and contents to append to the desired file. Usage: \"append <file> '<contents>'\" (single quotes are required)")
@@ -284,8 +299,14 @@ while True:
                     if args[1] == os.path.basename(__file__):
                         log("Cannot append to self!")
                     else:
-                        with open(args[1], "a") as f:
-                            f.write(prompt.split("'")[1])
+                        if os.access(dir, os.W_OK):
+                            try:
+                                with open(args[1], "a") as f:
+                                    f.write(prompt.split("'")[1])
+                            except:
+                                log("Couldn't append to file.")
+                        else:
+                            log("Cannot append text to file on a directory that is read-only!")
         elif cmd == "delete":
             if len(args) == 1:
                 log("Please specify a file to delete.")
@@ -293,15 +314,24 @@ while True:
                 if args[1] == os.path.basename(__file__):
                     log("Cannot self destruct!")
                 else:
-                    os.remove(args[1])
+                    if os.access(dir, os.W_OK):
+                        onlyfiles = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
+                        if substring in onlyfiles:
+                            os.remove(args[1])
+                        else:
+                            log("Error 02 - File not found")
+                    else:
+                        log("Cannot delete file on a read-only directory")
     else:
       if cmd == "cd..":
           os.chdir('..')
+          dir = os.getcwd()
       else:
           if cmd == "@echo":
             if echo:
                 log("Command echo is now off.")
                 echo = False
+                print("(run \"@echo\" again to turn on command echo)")
             else:
                 echo = True
                 log("Command echo is now on.")
