@@ -7,7 +7,7 @@ import urllib, json
 cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', '@echo', 'readll', 'clear']
 cmds.sort()
 cmds.append('quit')
-ver = "0.0.9-alpha"
+ver = "0.0.10-alpha"
 OS = platform.system()
 dir = os.getcwd()
 defaultdir = dir
@@ -127,9 +127,10 @@ while True:
     args = prompt.split(' ')
     cmd = args[0]
     substring = prompt[len(cmd) + 1:]
-    pre = cmd + ": "
+    pre = cmd + " - "
     def log(str):
-        print(pre + str) 
+        if echo:
+            print(pre + str) 
     if cmd in cmds:
         if cmd == 'ping':
             if len(args) == 1:
@@ -178,28 +179,29 @@ while True:
           onlyfolders = [f for f in os.listdir(dir) if os.path.isdir(os.path.join(dir, f))]
           if not len(onlyfiles) == 0:
               print("---Files---")
-              print("  ".join(onlyfiles))
+              print("    ".join(onlyfiles))
           if not len(onlyfolders) == 0:
               print("~~~Folders~~~")
-              print("  ".join(onlyfolders))
+              print("    ".join(onlyfolders))
           if len(onlyfiles) == 0 and len(onlyfolders) == 0:
               print("(Empty)")
         elif cmd == "cd":
             if len(args) == 1:
                 log("Please specify a directory to go to.")
             else:
-                if args[1] == ";":
+                if substring == ";":
                     debug("Going to default directory...")
                     os.chdir(defaultdir)
                     dir = os.getcwd()
                 else:
-                    if args[1] == "..":
+                    if substring == "..":
                         debug("Going down one folder...")
                         os.chdir('..')
                         dir = os.getcwd()
                     else:
-                        if args[1] in os.listdir():
-                            os.chdir(os.getcwd() + "/" + args[1])
+                        onlyfolders = [f for f in os.listdir(dir) if os.path.isdir(os.path.join(dir, f))]
+                        if substring in onlyfolders:
+                            os.chdir(os.getcwd() + "/" + substring)
                             dir = os.getcwd()
                         else:
                             log("Error 02.5 - Directory not found")
@@ -293,4 +295,14 @@ while True:
                 else:
                     os.remove(args[1])
     else:
-        print("The command " + cmd + " does not exist. Use \"help\" to get a list of commands.")
+      if cmd == "cd..":
+          os.chdir('..')
+      else:
+          if cmd == "@echo":
+            if echo:
+                log("Command echo is now off.")
+                echo = False
+            else:
+                echo = True
+                log("Command echo is now on.")
+          print("The command " + cmd + " does not exist. Use \"help\" to get a list of commands.")
