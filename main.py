@@ -7,7 +7,7 @@ import urllib, json
 cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', '@echo', 'readll', 'clear', 'fetch']
 cmds.sort()
 cmds.append('quit')
-ver = "0.1.0-alpha"
+ver = "0.1.1-alpha"
 OS = platform.system()
 dir = os.getcwd()
 defaultdir = dir
@@ -185,7 +185,7 @@ while True:
                     except:
                         log("There was an error when fetching the file. Maybe check the URL provided?")
         elif cmd == "echo":
-            log(substring)
+            print(substring)
         elif cmd == "clear":
             if OS == "Windows":
                 os.system('cls')
@@ -345,11 +345,12 @@ while True:
           dir = os.getcwd()
       else:
           if cmd == "@echo":
-            if echo:
-                log("Command echo is now off.")
-                echo = False
-                print("(run \"@echo\" again to turn on command echo)")
-            else:
-                echo = True
-                log("Command echo is now on.")
-          print("The command " + cmd + " does not exist. Use \"help\" to get a list of commands.")
+              if echo:
+                  print("@echo - Command echo is now off.")
+                  echo = False
+                  print("(run \"@echo\" again to turn on command echo)")
+              else:
+                  echo = True
+                  print("@echo - Command echo is now on.")
+          else:
+              print("The command " + cmd + " does not exist. Use \"help\" to get a list of commands.")
