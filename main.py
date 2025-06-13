@@ -4,15 +4,15 @@ import platform
 import requests
 import urllib.request
 import urllib, json
-cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', '@echo', 'readll']
+cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', '@echo', 'readll', 'clear']
 cmds.sort()
 cmds.append('quit')
-ver = "0.0.8-alpha"
+ver = "0.0.9-alpha"
 OS = platform.system()
 dir = os.getcwd()
 defaultdir = dir
 installloc = __file__
-print("OS: " + platform.system())
+print("OS: " + OS)
 print("Directory: " + os.getcwd())
 print("Default Directory: " + defaultdir)
 print("File located at: " + installloc)
@@ -168,6 +168,11 @@ while True:
                 echo = True
         elif cmd == "echo":
             log(substring)
+        elif cmd == "clear":
+            if OS == "Windows":
+                os.system('cls')
+            else:
+                os.system('clear')
         elif cmd == "dir":
           onlyfiles = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
           onlyfolders = [f for f in os.listdir(dir) if os.path.isdir(os.path.join(dir, f))]
