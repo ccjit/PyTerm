@@ -4,10 +4,10 @@ import platform
 import requests
 import urllib.request
 import urllib, json
-cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', '@echo', 'readll', 'clear']
+cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', '@echo', 'readll', 'clear', 'fetch']
 cmds.sort()
 cmds.append('quit')
-ver = "0.0.11-alpha"
+ver = "0.1.0-alpha"
 OS = platform.system()
 dir = os.getcwd()
 defaultdir = dir
@@ -160,13 +160,30 @@ while True:
             else:
                 debugging = True
                 log("Debugging is now on.")
-        elif cmd == "@echo":
-            if echo:
-                log("Command echo is now off.")
-                echo = False
+        elif cmd == "fetch":
+            if len(args) == 1:
+                log("Please specify a link to a file hosted online to fetch.")
             else:
-                log("Command echo is now on.")
-                echo = True
+                debug("Fetching file...")
+                if substring.startswith("http://"):
+                    log("To fetch, you need a secure protocol connection.")
+                    print("In short, fetch doesn't support http:// for security measures.")
+                else:
+                    try:
+                        if substring.startswith("https://"):
+                            with urllib.request.urlopen(substring) as data:
+                                debug("Fetched.")
+                                debug("Printing...")
+                                log("Data:")
+                                print(data.read())
+                        else:
+                            with urllib.request.urlopen("https://" + substring) as data:
+                                debug("Fetched.")
+                                debug("Printing...")
+                                log("Data:")
+                                print(data.read())
+                    except:
+                        log("There was an error when fetching the file. Maybe check the URL provided?")
         elif cmd == "echo":
             log(substring)
         elif cmd == "clear":
