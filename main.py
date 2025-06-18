@@ -5,11 +5,13 @@ import requests
 import urllib.request
 import urllib, json
 import logging as error
+from datetime import date
+import subprocess
 cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', 'readll', 'clear', 'fetch', 'clone', 'run']
 prgcmds = ['@echo','mem', 'ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', 'readll', 'clear', 'fetch', 'quit']
 cmds.sort()
 cmds.append('quit')
-ver = "0.1.2-pre"
+ver = "0.1.2"
 OS = platform.system()
 dir = os.getcwd()
 defaultdir = os.path.dirname(os.path.abspath(__file__))
@@ -24,10 +26,31 @@ print("Filename: " + filename)
 print("On SuperUser: " + str(on_su))
 updateurl = "https://raw.githubusercontent.com/ccjit/PyTerm/refs/heads/main/main.py"
 versionsurl = "https://raw.githubusercontent.com/ccjit/PyTerm/refs/heads/main/versions.json"
+isupdateday = '.' in str(date.day / 7) 
+if isupdateday:
+    print("Checking for updates...")
+    with urllib.request.urlopen(versionsurl) as file:
+        data = json.load(file)
+    if data['latest'] == ver:
+        print("All good! Proceeding to shell.")
+    else:
+        if ver in data['previous']:
+            print("Ding ding! Updates are due.")
+            print("Installing updates...")
+            response = requests.get(updateurl)
+        if response.status_code == 200:
+            print("Updating...")
+            file = urllib.request.urlretrieve(updateurl, installloc)
+            print("Updated!")
+            print("Restarting PyTerm...")
+            print("Changelog for PyTerm " + data['latest'] + ": " + data['changelog'])
+            os.execv(sys.executable, ["python3"] + [installloc])
+        else:
+            print(f"Error {response.status_code} when trying to update.")
 debugging = False
 def debug(str: str):
     if debugging:
-        print(str)
+        print("[DEBUG]: " + str)
 def ping(ip):
     if ip == "-h":
         print("ping - usage: ping <ip address> - parameters: -t (checks if IP is reachable), -h (print this message)")
@@ -124,19 +147,23 @@ def checkupdate(param):
         print("Changelog for PyTerm version " + data['latest'] + ": " + data['changelog'])
     else:
         print("Unknown parameter")
+'''        
 echo = True
 def run(filename: str):
     onlyfiles = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
     if filename in onlyfiles:
-        with open(filename, "r") as ptp:
-            file = ptp.read()
-        code = file.splitlines()
-        for i in len(code):
-            exec(code[i])
+        if os.path.splitext(filename)[1] == ".ptp":
+            with open(filename, "r") as ptp:
+                file = ptp.read()
+            code = file.splitlines()
+            for i in len(code):
+                exec(code[i])
+        else:
+            print("File must be in the .ptp (PyTerm program) file format!")
     else:
         print("Error 02 - FIle not found")
 def exec(code: str, prgname: str):
-    args = code.split(' ')
+    args = code.lower().split(' ')
     cmd = args[0]
     substring = code[len(cmd) + 1:]
     pre = "[" + prgname + "]" + cmd + " - "
@@ -173,18 +200,6 @@ def exec(code: str, prgname: str):
         elif cmd == "restart":
             log("Restarting PyTerm...")
             os.execv(sys.executable, ["python3"] + [installloc])
-        elif cmd == "run":
-            if len(args) == 1:
-                log("Please specify a python file to run.")
-            else:
-                onlyfiles = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
-                if substring in onlyfiles:
-                    if os.path.splitext(substring) == '.py':
-                        exec(substring)
-                    else:
-                        log("Cannot run file that isn't in .py file format!")
-                else:
-                    log("Error 02 - File not found")
         elif cmd == "debug":
             if debugging:
                 debugging = False
@@ -259,16 +274,38 @@ def exec(code: str, prgname: str):
                 with open(os.getcwd() + "/" + filename, "w") as f:
                     f.write(content)
         elif cmd == "dir":
-            onlyfiles = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
-            onlyfolders = [f for f in os.listdir(dir) if os.path.isdir(os.path.join(dir, f))]
-            if not len(onlyfiles) == 0:
-                print("---Files---")
-                print("    ".join(onlyfiles))
-            if not len(onlyfolders) == 0:
-                print("~~~Folders~~~")
-                print("    ".join(onlyfolders))
-            if len(onlyfiles) == 0 and len(onlyfolders) == 0:
-                print("(Empty)")
+            if len(args) == 1:
+                onlyfiles = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
+                onlyfolders = [f for f in os.listdir(dir) if os.path.isdir(os.path.join(dir, f))]
+                if not len(onlyfiles) == 0:
+                    print("---Files---")
+                    print("    ".join(onlyfiles))
+                if not len(onlyfolders) == 0:
+                    print("~~~Folders~~~")
+                    print("    ".join(onlyfolders))
+                if len(onlyfiles) == 0 and len(onlyfolders) == 0:
+                    print("(Empty)")
+            else:
+                if substring in onlyfolders:
+                    mem = os.getcwd()
+                    os.chdir(substring)
+                    dir = os.getcwd()
+                    onlyfiles = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
+                    onlyfolders = [f for f in os.listdir(dir) if os.path.isdir(os.path.join(dir, f))]
+                    debug("mem: " + mem)
+                    debug("dir: " + dir)
+                    if not len(onlyfiles) == 0:
+                        print("---Files---")
+                        print("    ".join(onlyfiles))
+                    if not len(onlyfolders) == 0:
+                        print("~~~Folders~~~")
+                        print("    ".join(onlyfolders))
+                    if len(onlyfiles) == 0 and len(onlyfolders) == 0:
+                       print("(Empty)")
+                    os.chdir(mem)
+                    dir = mem
+                else:
+                    log("Error 02.5 - Directory not found")
         elif cmd == "cd":
             if len(args) == 1:
                 log("Please specify a directory to go to.")
@@ -408,7 +445,8 @@ def exec(code: str, prgname: str):
                         log("Cannot delete file on a read-only directory")
     else:
         error.error("Command " + cmd + " not found")
-    return False    
+    return False
+'''
 echo = True
 while True:
     if echo:
@@ -516,17 +554,47 @@ while True:
                 debug('Writing contents to new file...')
                 with open(os.getcwd() + "/" + filename, "w") as f:
                     f.write(content)
+        elif cmd == "run":
+            if len(args) == 1:
+                log("Please specify a python file to run.")
+            else:
+                onlyfiles = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
+                if substring in onlyfiles:
+                    if os.path.splitext(substring)[1] == '.py':
+                        with open(substring, "r") as file:
+                            content = file.read()
+                        subprocess.Popen(content)
+                    else:
+                        log("Cannot run file that isn't in .py file format!")
+                else:
+                    log("Error 02 - File not found")
         elif cmd == "dir":
-            onlyfiles = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
-            onlyfolders = [f for f in os.listdir(dir) if os.path.isdir(os.path.join(dir, f))]
-            if not len(onlyfiles) == 0:
-                print("---Files---")
-                print("    ".join(onlyfiles))
-            if not len(onlyfolders) == 0:
-                print("~~~Folders~~~")
-                print("    ".join(onlyfolders))
-            if len(onlyfiles) == 0 and len(onlyfolders) == 0:
-                print("(Empty)")
+            if len(args) == 1:
+                onlyfiles = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
+                onlyfolders = [f for f in os.listdir(dir) if os.path.isdir(os.path.join(dir, f))]
+                if not len(onlyfiles) == 0:
+                    print("---Files---")
+                    print("    ".join(onlyfiles))
+                if not len(onlyfolders) == 0:
+                    print("~~~Folders~~~")
+                    print("    ".join(onlyfolders))
+                if len(onlyfiles) == 0 and len(onlyfolders) == 0:
+                    print("(Empty)")
+            else:
+                onlyfolders = [f for f in os.listdir(dir) if os.path.isdir(os.path.join(dir, f))]
+                if substring in onlyfolders:
+                    onlyfiles = [f for f in os.listdir(substring) if os.path.isfile(os.path.join(dir, f))]
+                    onlyfolders = [f for f in os.listdir(substring) if os.path.isdir(os.path.join(dir, f))]
+                    if not len(onlyfiles) == 0:
+                        print("---Files---")
+                        print("    ".join(onlyfiles))
+                    if not len(onlyfolders) == 0:
+                        print("~~~Folders~~~")
+                        print("    ".join(onlyfolders))
+                    if len(onlyfiles) == 0 and len(onlyfolders) == 0:
+                       print("(Empty)")
+                else:
+                    log("Error 02.5 - Directory not found")
         elif cmd == "cd":
             if len(args) == 1:
                 log("Please specify a directory to go to.")
@@ -537,16 +605,22 @@ while True:
                     dir = os.getcwd()
                 else:
                     if substring == "..":
-                        debug("Going down one folder...")
                         os.chdir('..')
                         dir = os.getcwd()
                     else:
-                        onlyfolders = [f for f in os.listdir(dir) if os.path.isdir(os.path.join(dir, f))]
-                        if substring in onlyfolders:
+                        if substring == "/":
                             os.chdir(os.getcwd() + "/" + substring)
-                            dir = os.getcwd()
                         else:
-                            log("Error 02.5 - Directory not found")
+                            onlyfolders = [f for f in os.listdir(dir) if os.path.isdir(os.path.join(dir, f))]
+                            if substring in onlyfolders:
+                                os.chdir(os.getcwd() + "/" + substring)
+                                dir = os.getcwd()
+                            else:
+                                try:
+                                    os.chdir(substring)
+                                    dir = os.getcwd()
+                                except:
+                                    log("Error 02.5 - Directory not found")
         elif cmd == "read":
             if len(args) == 1:
                 log("Please specify a text file to read.")
