@@ -21,7 +21,7 @@ print("Directory: " + os.getcwd())
 print("Default Directory: " + defaultdir)
 print("File located at: " + installloc)
 print("Filename: " + filename)
-print("On SuperUser: " + on_su)
+print("On SuperUser: " + str(on_su))
 updateurl = "https://raw.githubusercontent.com/ccjit/PyTerm/refs/heads/main/main.py"
 versionsurl = "https://raw.githubusercontent.com/ccjit/PyTerm/refs/heads/main/versions.json"
 debugging = False
