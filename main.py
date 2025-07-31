@@ -11,7 +11,7 @@ cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir
 # prgcmds = ['@echo', 'let', 'ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', 'readll', 'clear', 'fetch', 'quit']
 cmds.sort()
 cmds.append('quit')
-ver = "0.1.3-alpha"
+ver = "0.1.3-alpha2"
 OS = platform.system()
 dir = os.getcwd()
 defaultdir = os.path.dirname(os.path.abspath(__file__))
@@ -507,7 +507,7 @@ while True:
             if len(args) == 1:
                 log("Please specify a variable name to consult.")
             else:
-                log(type(globals()[args[1]]) + " " + str(globals()[args[1]]))
+                log(str(type(globals()[args[1]])) + " " + str(globals()[args[1]]))
         elif cmd == "restart":
             log("Restarting PyTerm...")
             os.execv(sys.executable, ["python3"] + [installloc])
