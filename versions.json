@@ -1,6 +1,6 @@
 {
-  "latest":"0.1.2",
-  "previous":["0.1.2-alpha", "0.1.0-alpha", "0.0.12-alpha", "0.0.11-alpha", "0.0.10-alpha", "0.0.9-alpha", "0.0.8-alpha", "0.0.7-alpha", "0.0.6.5-alpha", "0.0.6-alpha", "0.0.5-alpha", "0.0.4.12-alpha", "0.0.4.11-alpha", "0.0.4.10-alpha", "0.0.4.9-alpha", "0.0.4.8-alpha", "0.0.4.7-alpha", "0.0.4.6-alpha", "0.0.4.5-alpha", "0.0.4-alpha", "0.0.3-alpha", "0.0.2-alpha", "0.0.1-alpha"],
-  "soon":"0.1.3-alpha",
-  "changelog":"Minor bugfixes."
+  "latest":"0.1.3-alpha",
+  "previous":["0.1.2", "0.1.2-alpha", "0.1.0-alpha", "0.0.12-alpha", "0.0.11-alpha", "0.0.10-alpha", "0.0.9-alpha", "0.0.8-alpha", "0.0.7-alpha", "0.0.6.5-alpha", "0.0.6-alpha", "0.0.5-alpha", "0.0.4.12-alpha", "0.0.4.11-alpha", "0.0.4.10-alpha", "0.0.4.9-alpha", "0.0.4.8-alpha", "0.0.4.7-alpha", "0.0.4.6-alpha", "0.0.4.5-alpha", "0.0.4-alpha", "0.0.3-alpha", "0.0.2-alpha", "0.0.1-alpha"],
+  "soon":"0.1.3-beta",
+  "changelog":"Added variable-based commands. (let, var) -  Coming soon: More variable commands and future planned features."
 }
