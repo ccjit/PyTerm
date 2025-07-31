@@ -7,11 +7,11 @@ import urllib, json
 import logging as error
 from datetime import date
 import subprocess
-cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', 'readll', 'clear', 'fetch', 'clone', 'run']
-prgcmds = ['@echo','mem', 'ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', 'readll', 'clear', 'fetch', 'quit']
+cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', 'readll', 'clear', 'fetch', 'clone', 'run', 'let', 'var']
+# prgcmds = ['@echo', 'let', 'ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', 'readll', 'clear', 'fetch', 'quit']
 cmds.sort()
 cmds.append('quit')
-ver = "0.1.2"
+ver = "0.1.3-alpha"
 OS = platform.system()
 dir = os.getcwd()
 defaultdir = os.path.dirname(os.path.abspath(__file__))
@@ -26,7 +26,13 @@ print("Filename: " + filename)
 print("On SuperUser: " + str(on_su))
 updateurl = "https://raw.githubusercontent.com/ccjit/PyTerm/refs/heads/main/main.py"
 versionsurl = "https://raw.githubusercontent.com/ccjit/PyTerm/refs/heads/main/versions.json"
-isupdateday = '.' in str(date.day / 7) 
+isupdateday = False
+class Colors:
+    red = '\033[91m'
+    green = '\033[92m'
+    blue = '\033[94m'
+    yellow = '\033[93m'
+    reset = '\033[0m'
 if isupdateday:
     print("Checking for updates...")
     with urllib.request.urlopen(versionsurl) as file:
@@ -48,9 +54,9 @@ if isupdateday:
         else:
             print(f"Error {response.status_code} when trying to update.")
 debugging = False
-def debug(str: str):
+def debug(text: str):
     if debugging:
-        print("[DEBUG]: " + str)
+        print(f"[{Colors.yellow}DEBUG{Colors.reset}]: " + str(text))
 def ping(ip):
     if ip == "-h":
         print("ping - usage: ping <ip address> - parameters: -t (checks if IP is reachable), -h (print this message)")
@@ -90,15 +96,15 @@ def checkupdate(param):
             debug(data)
             debug("Checking for updates...")
             if  ver == data['latest']:
-                print("PyTerm is up to date.")
+                print(f"PyTerm is {Colors.green}up to date{Colors.reset}.")
             else:
                 if ver == data['soon']:
-                    print("PyTerm is running a beta version, you may encounter bugs or instability.")
+                    print(f"PyTerm is running a {Colors.yellow}beta{Colors.reset} version, you may encounter bugs or instability.")
                 else:
                     if ver in data['previous']:
-                        print("PyTerm is outdated. Run \"update install\" to install the new update.")
+                        print(f"PyTerm is {Colors.red}outdated{Colors.reset}. Run \"update install\" to install the new update.")
                     else: 
-                        print("You are running an unknown version of PyTerm. Run \"update install\" to install the latest version of PyTerm and to revert all changes you made to this file prior to updating.")
+                        print(f"You are running an {Colors.yellow}unknown{Colors.reset} version of PyTerm. Run \"update install\" to install the latest version of PyTerm and to revert all changes you made to this file prior to updating.")
         else:
             print(f"Error {response.status_code}")
     elif param == 'install':
@@ -146,7 +152,7 @@ def checkupdate(param):
         debug(file)
         print("Changelog for PyTerm version " + data['latest'] + ": " + data['changelog'])
     else:
-        print("Unknown parameter")
+        print(f"${Colors.red}Unknown parameter")
 '''        
 echo = True
 def run(filename: str):
@@ -456,7 +462,7 @@ while True:
     args = prompt.split(' ')
     cmd = args[0]
     substring = prompt[len(cmd) + 1:]
-    pre = cmd + " - "
+    pre = f"{Colors.blue}" + cmd + f"{Colors.reset} - "
     def log(str):
         if echo:
             print(pre + str) 
@@ -469,7 +475,10 @@ while True:
         elif cmd == 'help':
             log('PyTerm commands: ' + ", ".join(cmds))
         elif cmd == 'sys':
-            log('Running PyTerm v' + ver + " on " + OS)
+            pre2 = ""
+            if on_su:
+                pre2 = " in the Super User profile"
+            log('Running PyTerm v' + ver + " on " + OS + pre2)
             log('Running on directory ' + dir)
         elif cmd == "update":
             checkupdate(substring)
@@ -478,6 +487,27 @@ while True:
         elif cmd == "quit":
             log("Quitting...")
             exit(0)
+        elif cmd == "let":
+            if len(args) == 1:
+                log("Please specify a variable name and value to set to.")
+                log("Syntax: let (variable name: 1 word) = (value, string, number, etc)")
+            else:
+                try:
+                    try:
+                        args[3] = float(prompt[len(args[0]) + len(args[1]) + len(args[2]) + 3])
+                    except:
+                        try:
+                            args[3] = bool(args[3])
+                        except:
+                            args[3] = '"' + args[3] + '"'
+                    exec(args[1] + ' = ' + str(args[3]))
+                except:
+                    log("Something happened. Maybe check the syntax?")
+        elif cmd == "var":
+            if len(args) == 1:
+                log("Please specify a variable name to consult.")
+            else:
+                log(type(globals()[args[1]]) + " " + str(globals()[args[1]]))
         elif cmd == "restart":
             log("Restarting PyTerm...")
             os.execv(sys.executable, ["python3"] + [installloc])
@@ -485,7 +515,7 @@ while True:
             if debugging:
                 debugging = False
                 log("Debugging is now off.")
-                debug(pre + "If you can see this message, it means debugging didn't turn off.")
+                debug("If you can see this message, it means debugging didn't actually turn off.")
             else:
                 debugging = True
                 log("Debugging is now on.")
@@ -526,8 +556,8 @@ while True:
                                     log("Data:")
                                     print(data.read())
                     except:
-                        debug("Failed to fetch file.")
-                        log("There was an error when fetching the file. Maybe check the URL provided?")
+                        debug(f"{Colors.red}Failed to fetch file.")
+                        log(f"There was an {Colors.red}error{Colors.reset} when fetching the file. Maybe check the URL provided?")
         elif cmd == "echo":
             print(substring)
         elif cmd == "clear":
@@ -565,9 +595,9 @@ while True:
                             content = file.read()
                         subprocess.Popen(content)
                     else:
-                        log("Cannot run file that isn't in .py file format!")
+                        log(f"{Colors.red}Cannot{Colors.reset} run file that isn't in .py file format!")
                 else:
-                    log("Error 02 - File not found")
+                    log(f"{Colors.red}Error 02{Colors.reset} - File not found")
         elif cmd == "dir":
             if len(args) == 1:
                 onlyfiles = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
@@ -635,6 +665,24 @@ while True:
                         log("File must be a .txt file!")
                 else:
                     log("Error 02 - File not found")
+        elif cmd == "login":
+            if on_su:
+                if OS == "Windows":
+                    users = [f for f in os.listdir("C:\\Users") if os.path.isdir(os.path.join(dir, f))]
+                elif OS == "Linux":
+                    users = [f for f in os.listdir("/home/") if os.path.isdir(os.path.join(dir, f))]
+                else:
+                    log(f"{Colors.red}Error{Colors.reset} - Incompatible OS.")
+                    break
+                if len(args) == 1:
+                    log("Please specify a user account to go to the directory of. Users: " + ", ".join(users))
+            else:
+                if OS == "Windows":
+                    log(f"You {Colors.red}cannot{Colors.reset} use this command unless you're in an Administrator account.")
+                elif OS == "Linux":
+                    log(f"You {Colors.red}cannot{Colors.reset} use this command unless you're running this with sudo or logged into the superuser account.")
+                else:
+                    log(f"You {Colors.red}cannot{Colors.reset} use this command unless you have enough permissions to run it.")
         elif cmd == "readll":
             if len(args) == 1:
                 log("Please specify a file to read.")
@@ -672,7 +720,10 @@ while True:
                     log("Folder name contains invalid characters!")
                 else:
                     if os.access(dir, os.W_OK):
-                        os.mkdir(substring)
+                        if substring in onlyfolders:
+                            log("Folder already exists")
+                        else:
+                            os.mkdir(substring)
                     else:
                         log("Cannot create directory on a read-only directory.")
         elif cmd == "deldir" or cmd == "rmdir":
@@ -682,11 +733,14 @@ while True:
                 if substring in installloc:
                     log("Cannot delete directory that hosts self!")
                 else:
-                  if os.access(dir, os.W_OK):
-                      os.rmdir(substring)
-                  else:
-                      log("Cannot delete directory on a read-only directory.")
-                      
+                    onlyfolders = [f for f in os.listdir(dir) if os.path.isdir(os.path.join(dir, f))]
+                    if substring in onlyfolders:
+                        if os.access(dir, os.W_OK):
+                            os.rmdir(substring)
+                        else:
+                            log("Cannot delete directory on a read-only directory.")
+                    else:
+                        log("Error 02.5 - Directory not found")
         elif cmd == "write":
             if len(args) < 3:
                 log("Please specify a file and contents to write to. Usage: \"write <file> '<contents>'\" (single quotes are required)")
