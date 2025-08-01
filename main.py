@@ -7,11 +7,11 @@ import urllib, json
 import logging as error
 from datetime import date
 import subprocess
-cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', 'readll', 'clear', 'fetch', 'clone', 'run', 'let', 'var', 'login']
+cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', 'readll', 'clear', 'fetch', 'clone', 'run', 'let', 'var', 'vars', 'login']
 # prgcmds = ['@echo', 'let', 'ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', 'readll', 'clear', 'fetch', 'quit']
 cmds.sort()
 cmds.append('quit')
-ver = "0.1.3"
+ver = "0.1.3-pt2"
 OS = platform.system()
 dir = os.getcwd()
 defaultdir = os.path.dirname(os.path.abspath(__file__))
@@ -231,13 +231,17 @@ while True:
                     try:
                         args[3] = float(prompt[len(args[0]) + len(args[1]) + len(args[2]) + 3])
                     except:
-                        try:
-                            args[3] = bool(args[3])
-                        except:
+                        if args[3] == "true" or args[3] == "false":
+                            if args[3] == "true": args[3] = True
+                            if args[3] == "false": args[3] = False
+                        else:
                             args[3] = '"' + args[3] + '"'
                     exec(args[1] + ' = ' + str(args[3]))
                 except:
                     log("Something happened. Maybe check the syntax?")
+        elif cmd == "vars":
+            print("---Variables---")
+            print("     ".join(globals()))
         elif cmd == "var":
             if len(args) == 1:
                 log("Please specify a variable name to consult.")
