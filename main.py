@@ -7,11 +7,11 @@ import urllib, json
 import logging as error
 from datetime import date
 import subprocess
-cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', 'readll', 'clear', 'fetch', 'clone', 'run', 'let', 'var']
+cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', 'readll', 'clear', 'fetch', 'clone', 'run', 'let', 'var', 'login']
 # prgcmds = ['@echo', 'let', 'ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', 'readll', 'clear', 'fetch', 'quit']
 cmds.sort()
 cmds.append('quit')
-ver = "0.1.3-alpha3"
+ver = "0.1.3"
 OS = platform.system()
 dir = os.getcwd()
 defaultdir = os.path.dirname(os.path.abspath(__file__))
@@ -33,6 +33,8 @@ class Colors:
     blue = '\033[94m'
     yellow = '\033[93m'
     reset = '\033[0m'
+    bold = '\033[1m'
+    under = '\033[4m'
 if isupdateday:
     print("Checking for updates...")
     with urllib.request.urlopen(versionsurl) as file:
@@ -85,7 +87,7 @@ def ping(ip):
         else:
             print(output)
 def checkupdate(param):
-    if param == "":
+    if param == "" or param == "none":
         response = requests.get(versionsurl)
         if response.status_code == 200:
             debug("Fetching versions file...")
@@ -149,327 +151,60 @@ def checkupdate(param):
             debug("File fetched. Loading file...")
             data = json.load(file)
             debug("Loaded.")
-        debug(file)
+        debug(data)
         print("Changelog for PyTerm version " + data['latest'] + ": " + data['changelog'])
+    elif param == "latest":
+        debug("Fetching versions file...")
+        debug("If your connection speed is low, this might take a while.")
+        with urllib.request.urlopen(versionsurl) as file:
+            debug("File fetched. Loading file...")
+            data = json.load(file)
+            debug("Loaded.")
+        debug(data)
+        print("The latest downloadable PyTerm version is v" + data['latest'] + ".")
+    elif param == "planned":
+        debug("Fetching versions file...")
+        debug("If your connection speed is low, this might take a while.")
+        with urllib.request.urlopen(versionsurl) as file:
+            debug("File fetched. Loading file...")
+            data = json.load(file)
+            debug("Loaded.")
+        debug(data)
+        print("---Planned PyTerm features---")
+        print(data['planned'])
+    elif param == "soon":
+        debug("Fetching versions file...")
+        debug("If your connection speed is low, this might take a while.")
+        with urllib.request.urlopen(versionsurl) as file:
+            debug("File fetched. Loading file...")
+            data = json.load(file)
+            debug("Loaded.")
+        debug(data)
+        print("The next (planned) PyTerm version is v" + data['soon'] + ".")    
+    elif param == "params":
+        print("Parameters:")
+        print(f"{Colors.blue}none{Colors.reset} - Checks for updates.\n{Colors.blue}install{Colors.reset} - Installs the latest version of PyTerm.\n{Colors.blue}changelog{Colors.reset} - Gives you the changelog for the latest PyTerm version.\n{Colors.blue}latest{Colors.reset} - Tells you what the latest version of PyTerm is.\n{Colors.blue}planned{Colors.reset} - Gives you a list of planned PyTerm features.\n{Colors.blue}soon{Colors.reset} - Tells you the next planned PyTerm version.\n{Colors.blue}params{Colors.reset} - Prints these exact messages.\n")
     else:
-        print(f"${Colors.red}Unknown parameter")
-'''        
-echo = True
-def run(filename: str):
-    onlyfiles = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
-    if filename in onlyfiles:
-        if os.path.splitext(filename)[1] == ".ptp":
-            with open(filename, "r") as ptp:
-                file = ptp.read()
-            code = file.splitlines()
-            for i in len(code):
-                exec(code[i])
-        else:
-            print("File must be in the .ptp (PyTerm program) file format!")
-    else:
-        print("Error 02 - FIle not found")
-def exec(code: str, prgname: str):
-    args = code.lower().split(' ')
-    cmd = args[0]
-    substring = code[len(cmd) + 1:]
-    pre = "[" + prgname + "]" + cmd + " - "
-    def log(str: str):
-        print(pre + str)
-    if cmd in prgcmds:
-        if cmd == 'ping':
-            if len(args) == 1:
-                log("Please specify an IP address or parameter for this command. Do \"ping -h\" to get help on this command.")
-            else:
-                ping(substring)
-        elif cmd == 'def':
-            if len(args) == 1 or substring == None:
-                log("Cannot define empty variable!")
-            else:
-                eval(args[1] + ' = None')
-        elif cmd == "set":
-            if len(args) == 1 or substring == None:
-                log("Cannot define empty variable!")
-            else:
-                eval(args[1] + ' = None')
-        elif cmd == 'help':
-            log('PyTerm commands: ' + ", ".join(cmds))
-        elif cmd == 'sys':
-            log('Running PyTerm v' + ver + " on " + OS)
-            log('Running on directory ' + dir)
-        elif cmd == "update":
-            checkupdate(substring)
-        elif cmd == "about":
-            log("PyTerm v" + ver + " - Made by ccjt in 2025")
-        elif cmd == "quit":
-            log("Quitting...")
-            exit(0)
-        elif cmd == "restart":
-            log("Restarting PyTerm...")
-            os.execv(sys.executable, ["python3"] + [installloc])
-        elif cmd == "debug":
-            if debugging:
-                debugging = False
-                log("Debugging is now off.")
-                debug(pre + "If you can see this message, it means debugging didn't turn off.")
-            else:
-                debugging = True
-                log("Debugging is now on.")
-        elif cmd == "fetch":
-            if len(args) == 1:
-                log("Please specify a link to a file hosted online to fetch.")
-            else:
-                debug("Fetching file...")
-                if substring.startswith("http://"):
-                    log("To fetch, you need a secure protocol connection.")
-                    log("In short, fetch doesn't support http:// for security measures.")
-                    debug("Failed to fetch file.")
-                else:
-                    try:
-                        if substring == "versions":
-                            with urllib.request.urlopen(versionsurl) as data:
-                                debug("Fetched.")
-                                debug("Printing...")
-                                log("Data:")
-                                print(data.read())
-                        elif substring == "pyterm":
-                            with urllib.request.urlopen(updateurl) as data:
-                                debug("Fetched.")
-                                debug("Printing...")
-                                log("Data:")
-                                print(data.read())
-                        else:
-                            if substring.startswith("https://"):
-                                with urllib.request.urlopen(substring) as data:
-                                    debug("Fetched.")
-                                    debug("Printing...")
-                                    log("Data:")
-                                    print(data.read())
-                            else:
-                                with urllib.request.urlopen("https://" + substring) as data:
-                                    debug("Fetched.")
-                                    debug("Printing...")
-                                    log("Data:")
-                                    print(data.read())
-                    except:
-                        debug("Failed to fetch file.")
-                        log("There was an error when fetching the file. Maybe check the URL provided?")
-        elif cmd == "echo":
-            print(substring)
-        elif cmd == "clear":
-            if OS == "Windows":
-                os.system('cls')
-            else:
-                os.system('clear')
-        elif cmd == "clone":
-            log("Cloning PyTerm...")
-            existing = False
-            if os.getcwd() == defaultdir:
-                log("There is already a copy of PyTerm here!")
-                existing = True
-            onlyfiles = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
-            for file in onlyfiles:
-                if file == filename:
-                    log("There is already a copy of PyTerm here!")
-                    existing = True
-            if not existing:
-                debug('Reading file...')
-                with open(installloc, "r") as file:
-                    content = file.read()
-                debug(content)
-                debug('Writing contents to new file...')
-                with open(os.getcwd() + "/" + filename, "w") as f:
-                    f.write(content)
-        elif cmd == "dir":
-            if len(args) == 1:
-                onlyfiles = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
-                onlyfolders = [f for f in os.listdir(dir) if os.path.isdir(os.path.join(dir, f))]
-                if not len(onlyfiles) == 0:
-                    print("---Files---")
-                    print("    ".join(onlyfiles))
-                if not len(onlyfolders) == 0:
-                    print("~~~Folders~~~")
-                    print("    ".join(onlyfolders))
-                if len(onlyfiles) == 0 and len(onlyfolders) == 0:
-                    print("(Empty)")
-            else:
-                if substring in onlyfolders:
-                    mem = os.getcwd()
-                    os.chdir(substring)
-                    dir = os.getcwd()
-                    onlyfiles = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
-                    onlyfolders = [f for f in os.listdir(dir) if os.path.isdir(os.path.join(dir, f))]
-                    debug("mem: " + mem)
-                    debug("dir: " + dir)
-                    if not len(onlyfiles) == 0:
-                        print("---Files---")
-                        print("    ".join(onlyfiles))
-                    if not len(onlyfolders) == 0:
-                        print("~~~Folders~~~")
-                        print("    ".join(onlyfolders))
-                    if len(onlyfiles) == 0 and len(onlyfolders) == 0:
-                       print("(Empty)")
-                    os.chdir(mem)
-                    dir = mem
-                else:
-                    log("Error 02.5 - Directory not found")
-        elif cmd == "cd":
-            if len(args) == 1:
-                log("Please specify a directory to go to.")
-            else:
-                if substring == ";":
-                    debug("Going to default directory...")
-                    os.chdir(defaultdir)
-                    dir = os.getcwd()
-                else:
-                    if substring == "..":
-                        debug("Going down one folder...")
-                        os.chdir('..')
-                        dir = os.getcwd()
-                    else:
-                        onlyfolders = [f for f in os.listdir(dir) if os.path.isdir(os.path.join(dir, f))]
-                        if substring in onlyfolders:
-                            os.chdir(os.getcwd() + "/" + substring)
-                            dir = os.getcwd()
-                        else:
-                            log("Error 02.5 - Directory not found")
-        elif cmd == "read":
-            if len(args) == 1:
-                log("Please specify a text file to read.")
-            else:
-                onlyfiles = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
-                if substring in onlyfiles:
-                    if substring.endswith(".txt"):
-                        with open(substring, "r") as file:
-                            content = file.read()
-                        print(content)
-                    else:
-                        log("File must be a .txt file!")
-                else:
-                    log("Error 02 - File not found")
-        elif cmd == "readll":
-            if len(args) == 1:
-                log("Please specify a file to read.")
-            else:
-                onlyfiles = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
-                if substring in onlyfiles:
-                    try: 
-                        with open(substring, "r") as file:
-                            content = file.read()
-                        print(content)
-                    except:
-                        log("Cannot read this file.")
-                else:
-                    log("Error 02 - File not found")
-        elif cmd == "create":
-            if len(args) == 1:
-                log("Please specify a file name to make a text file of.")
-            else:
-                if args[1] + ".txt" in os.listdir():
-                    log("You can't create a file with an existing file name! Use \"write\" to edit that file!")
-                else:
-                    if os.access(dir, os.W_OK):
-                        with open(args[1] + ".txt", "w") as f:
-                            f.write("")
-                    else:
-                        log("Cannot create file on a read-only directory.")
-        elif cmd == "mkdir":
-            if len(args) == 1:
-                log("Please specify a folder name to create.")
-            else:
-                invalid = [".", "/", "?", "\\", ";", ":"]
-                def callback(char):
-                    return char in substring
-                if any(callback(char) for char in invalid):
-                    log("Folder name contains invalid characters!")
-                else:
-                    if os.access(dir, os.W_OK):
-                        os.mkdir(substring)
-                    else:
-                        log("Cannot create directory on a read-only directory.")
-        elif cmd == "deldir" or cmd == "rmdir":
-            if len(args) == 1:
-                log('Please specify a directory to delete.')
-            else:
-                if substring in installloc:
-                    log("Cannot delete directory that hosts self!")
-                else:
-                  if os.access(dir, os.W_OK):
-                      os.rmdir(substring)
-                  else:
-                      log("Cannot delete directory on a read-only directory.")
-                      
-        elif cmd == "write":
-            if len(args) < 3:
-                log("Please specify a file and contents to write to. Usage: \"write <file> '<contents>'\" (single quotes are required)")
-            else:
-                if prompt.count("'") < 2:
-                    log("The syntax of the command is invalid.")
-                else:
-                    if args[1] == os.path.basename(__file__):
-                        log("Cannot overwrite self!")
-                    else:
-                        if os.access(dir, os.W_OK):
-                            try:
-                                with open(args[1], "w") as f:
-                                    f.write(prompt.split("'")[1])
-                            except:
-                                log("Couldn't write to file.")
-                        else:
-                            log("Cannot write to file on a read-only directory!")
-        elif cmd == "append":
-            if len(args) < 3:
-                log("Please specify a file name and contents to append to the desired file. Usage: \"append <file> '<contents>'\" (single quotes are required)")
-            else:
-                if prompt.count("'") < 2:
-                    log("The syntax of the command is invalid.")
-                else:
-                    if args[1] == os.path.basename(__file__):
-                        log("Cannot append to self!")
-                    else:
-                        if os.access(dir, os.W_OK):
-                            try:
-                                with open(args[1], "a") as f:
-                                    f.write(prompt.split("'")[1])
-                            except:
-                                log("Couldn't append to file.")
-                        else:
-                            log("Cannot append text to file on a directory that is read-only!")
-        elif cmd == "delete":
-            if len(args) == 1:
-                log("Please specify a file to delete.")
-            else:
-                if args[1] == os.path.basename(__file__):
-                    log("Cannot self destruct!")
-                else:
-                    if os.access(dir, os.W_OK):
-                        onlyfiles = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
-                        if substring in onlyfiles:
-                            os.remove(args[1])
-                        else:
-                            log("Error 02 - File not found")
-                    else:
-                        log("Cannot delete file on a read-only directory")
-    else:
-        error.error("Command " + cmd + " not found")
-    return False
-'''
+        print(f"{Colors.red}{Colors.bold}Unknown parameter{Colors.reset}")
+        print(f"Use {Colors.bold}{Colors.blue}update params{Colors.reset} to get a list of parameters.")
 echo = True
 while True:
     if echo:
         prompt = input(dir + "> ")
     else:
         prompt = input("")
+    prompt = prompt.lower()
     args = prompt.split(' ')
     cmd = args[0]
     substring = prompt[len(cmd) + 1:]
-    pre = f"{Colors.blue}" + cmd + f"{Colors.reset} - "
+    pre = f"{Colors.blue}{Colors.under}{Colors.bold}" + cmd + f"{Colors.reset} - "
     def log(str):
         if echo:
-            print(pre + str) 
+            print(Colors.reset + pre + str)
     if cmd in cmds:
         if cmd == 'ping':
             if len(args) == 1:
-                log("Please specify an IP address or parameter for this command. Do \"ping -h\" to get help on this command.")
+                log(f"Please specify an IP address or parameter for this command. Do {Colors.blue}{Colors.bold}ping -h{Colors.reset} to get help on this command.")
             else:
                 ping(substring)
         elif cmd == 'help':
@@ -601,7 +336,7 @@ while True:
                     else:
                         log(f"{Colors.red}Cannot{Colors.reset} run file that isn't in .py file format!")
                 else:
-                    log(f"{Colors.red}Error 02{Colors.reset} - File not found")
+                    log("Error 02 - File not found")
         elif cmd == "dir":
             if len(args) == 1:
                 onlyfiles = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
@@ -747,40 +482,34 @@ while True:
                         log("Error 02.5 - Directory not found")
         elif cmd == "write":
             if len(args) < 3:
-                log("Please specify a file and contents to write to. Usage: \"write <file> '<contents>'\" (single quotes are required)")
+                log(f"Please specify a file and contents to write to. Usage: {Colors.blue}{Colors.bold}write <file> <contents, can have spaces>{Colors.reset}")
             else:
-                if prompt.count("'") < 2:
-                    log("The syntax of the command is invalid.")
+                if args[1] == os.path.basename(__file__):
+                    log("Cannot overwrite self!")
                 else:
-                    if args[1] == os.path.basename(__file__):
-                        log("Cannot overwrite self!")
+                    if os.access(dir, os.W_OK):
+                        try:
+                            with open(args[1], "w") as f:
+                                f.write(prompt[len(args[0]) + len(args[1]) + 2:])
+                        except:
+                            log("Couldn't write to file.")
                     else:
-                        if os.access(dir, os.W_OK):
-                            try:
-                                with open(args[1], "w") as f:
-                                    f.write(prompt.split("'")[1])
-                            except:
-                                log("Couldn't write to file.")
-                        else:
-                            log("Cannot write to file on a read-only directory!")
+                        log("Cannot write to file on a read-only directory!")
         elif cmd == "append":
             if len(args) < 3:
-                log("Please specify a file name and contents to append to the desired file. Usage: \"append <file> '<contents>'\" (single quotes are required)")
+                log(f"Please specify a file name and contents to append to the desired file. Usage: {Colors.bold}{Colors.blue}append {Colors.yellow}<file> <content, can have spaces>{Colors.reset}")
             else:
-                if prompt.count("'") < 2:
-                    log("The syntax of the command is invalid.")
+                if args[1] == os.path.basename(__file__):
+                    log("Cannot append to self!")
                 else:
-                    if args[1] == os.path.basename(__file__):
-                        log("Cannot append to self!")
+                    if os.access(dir, os.W_OK):
+                        try:
+                            with open(args[1], "a") as f:
+                                f.write(prompt[len(args[0]) + len(args[1]) + 2:])
+                        except:
+                            log("Couldn't append to file.")
                     else:
-                        if os.access(dir, os.W_OK):
-                            try:
-                                with open(args[1], "a") as f:
-                                    f.write(prompt.split("'")[1])
-                            except:
-                                log("Couldn't append to file.")
-                        else:
-                            log("Cannot append text to file on a directory that is read-only!")
+                        log("Cannot append text to file on a directory that is read-only!")
         elif cmd == "delete":
             if len(args) == 1:
                 log("Please specify a file to delete.")
@@ -800,14 +529,16 @@ while True:
         if cmd == "cd..":
             os.chdir('..')
             dir = os.getcwd()
-        else:
-            if cmd == "@echo":
-                if echo:
-                    print("@echo - Command echo is now off.")
-                    echo = False
-                    print("(run \"@echo\" again to turn on command echo)")
-                else:
-                    echo = True
-                    print("@echo - Command echo is now on.")
+        elif cmd == "cd;":
+            os.chdir(defaultdir)
+            dir = os.getcwd()
+        elif cmd == "@echo":
+            if echo:
+                print("@echo - Command echo is now off.")
+                echo = False
+                print(f"(run {Colors.blue}{Colors.bold}@echo{Colors.reset} again to turn on command echo)")
             else:
-                print("The command " + cmd + " does not exist. Use \"help\" to get a list of commands.")
+                echo = True
+                print("@echo - Command echo is now on.")
+        else:
+            print(f"The command {Colors.blue}{Colors.bold}" + cmd + f"{Colors.reset} does not exist. Use {Colors.bold}{Colors.blue}help{Colors.reset} to get a list of commands.")
