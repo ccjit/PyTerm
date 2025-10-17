@@ -7,3 +7,7 @@ PyTerm runs best on Linux, but some commands also support Windows, macOS and Fre
 
 # How to run
 You can install PyTerm by just downloading the file and running it wherever you're able to on your computer.
+
+# Startup Guide
+PyTerm will look for a `startup.ptp` file on startup, and if it exists, it will run it.
+You can use this to set initial default variables for your usual workflow.
