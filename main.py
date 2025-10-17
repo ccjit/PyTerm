@@ -1,32 +1,49 @@
 import os
 import sys
 import platform
-import requests
 import urllib.request
+import urllib.error
 import urllib, json
 import logging as error
 from datetime import date
 import subprocess
-cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', 'readll', 'clear', 'fetch', 'clone', 'run', 'let', 'var', 'vars', 'login']
-# prgcmds = ['@echo', 'let', 'ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', 'readll', 'clear', 'fetch', 'quit']
+cmds = ['ping', 'help', 'sys', 'update', 'about', 'debug', 'restart', 'cd', 'dir', 'read', 'create', 'write', 'append', 'delete', 'mkdir', 'deldir', 'rmdir', 'echo', 'readll', 'clear', 'fetch', 'clone', 'run', 'let', 'var', 'vars', 'login', 'import']
 cmds.sort()
 cmds.append('quit')
-ver = "0.1.3-pt2"
-OS = platform.system()
+errors = {
+    "00": "deprecated command-parameter combo",
+    "01": "IP unreachable",
+    "02": "File not found",
+    "02.5": "Directory not found"
+}
+def formatErrorCode(code):
+    return f"Error {code} - {errors.get(code)}"
+class Vars:
+    ver = "0.1.5"
+    date = date.today().strftime('%d')
+    defaultdir = os.path.dirname(os.path.abspath(__file__))
+    installloc = os.path.abspath(__file__)
+    filename = os.path.basename(os.path.abspath(__file__))
+    on_su = os.geteuid() == 0
+    OS = platform.system()
+vars = Vars()
+vars.date = int(vars.date)
 dir = os.getcwd()
-defaultdir = os.path.dirname(os.path.abspath(__file__))
-installloc = os.path.abspath(__file__)
-filename = os.path.basename(os.path.abspath(__file__))
-on_su = os.geteuid() == 0
+ver = vars.ver
+OS = vars.OS
+defaultdir = vars.defaultdir
+installloc = vars.installloc
+filename = vars.filename
+on_su = vars.on_su
+updateurl = "https://raw.githubusercontent.com/ccjit/PyTerm/refs/heads/main/main.py"
+versionsurl = "https://raw.githubusercontent.com/ccjit/PyTerm/refs/heads/main/versions.json"
+isupdateday = False
 print("OS: " + OS)
 print("Directory: " + os.getcwd())
 print("Default Directory: " + defaultdir)
 print("File located at: " + installloc)
 print("Filename: " + filename)
 print("On SuperUser: " + str(on_su))
-updateurl = "https://raw.githubusercontent.com/ccjit/PyTerm/refs/heads/main/main.py"
-versionsurl = "https://raw.githubusercontent.com/ccjit/PyTerm/refs/heads/main/versions.json"
-isupdateday = False
 class Colors:
     red = '\033[91m'
     green = '\033[92m'
@@ -71,7 +88,7 @@ def ping(ip):
         else:
             print('IP reachable')
         '''
-        print('Error 00 - deprecated command-parameter combo')
+        print(f'{formatErrorCode('00')}')
     else:
         if OS == "Windows":
             stream = os.popen(f'ping /n 4 {ip}')
@@ -83,13 +100,12 @@ def ping(ip):
         output = stream.read()
         print('pinging ' + ip)
         if '0 received' in output:
-            print('Error 01 - IP unreachable')
+            print(f'{formatErrorCode('01')}')
         else:
             print(output)
 def checkupdate(param):
     if param == "" or param == "none":
-        response = requests.get(versionsurl)
-        if response.status_code == 200:
+        try:
             debug("Fetching versions file...")
             debug("If your connection speed is low, this might take a while.")
             with urllib.request.urlopen(versionsurl) as file:
@@ -107,8 +123,9 @@ def checkupdate(param):
                         print(f"PyTerm is {Colors.red}outdated{Colors.reset}. Run \"update install\" to install the new update.")
                     else: 
                         print(f"You are running an {Colors.yellow}unknown{Colors.reset} version of PyTerm. Run \"update install\" to install the latest version of PyTerm and to revert all changes you made to this file prior to updating.")
-        else:
-            print(f"Error {response.status_code}")
+        except Exception as e:
+            print(f"Something happened while retrieving update data.")
+            debug(e)
     elif param == 'install':
         debug("Fetching versions file...")
         debug("If your connection speed is low, this might take a while.")
@@ -129,11 +146,10 @@ def checkupdate(param):
                 else: 
                     updated = False
 
-        response = requests.get(updateurl)
         if updated:
             print("PyTerm is already up to date!") 
         else:
-            if response.status_code == 200:
+            try:
                 print("Updating...")
                 debug("Fetching files to add...")
                 file = urllib.request.urlretrieve(updateurl, installloc)
@@ -142,8 +158,8 @@ def checkupdate(param):
                 print("Restarting PyTerm...")
                 print("Changelog for PyTerm " + data['latest'] + ": " + data['changelog'])
                 os.execv(sys.executable, ["python3"] + [installloc])
-            else:
-                print(f"Error {response.status_code} when trying to update.")
+            except:
+                print("An error occured when updating.")
     elif param == "changelog":
         debug("Fetching versions file...")
         debug("If your connection speed is low, this might take a while.")
@@ -187,26 +203,55 @@ def checkupdate(param):
     else:
         print(f"{Colors.red}{Colors.bold}Unknown parameter{Colors.reset}")
         print(f"Use {Colors.bold}{Colors.blue}update params{Colors.reset} to get a list of parameters.")
+
 echo = True
-while True:
-    if echo:
-        prompt = input(dir + "> ")
-    else:
-        prompt = input("")
-    prompt = prompt.lower()
+mem = None
+imported  = {}
+def execute(prompt):
+    global mem
+    global cmds
+    global vars
+    global echo
+    global OS
+    global imported
+    global updateurl
+    global versionsurl
+    global dir
+    global debugging
+    ver = vars.ver
+    defaultdir = vars.defaultdir
+    installloc = vars.installloc
+    filename = vars.filename
+    for var in globals():
+        exec("global " + var)
+    on_su = vars.on_su
     args = prompt.split(' ')
+    substring = prompt[len(args[0]) + 1:]
+    prompt = prompt.lower()
     cmd = args[0]
-    substring = prompt[len(cmd) + 1:]
     pre = f"{Colors.blue}{Colors.under}{Colors.bold}" + cmd + f"{Colors.reset} - "
     def log(str):
         if echo:
             print(Colors.reset + pre + str)
+    
     if cmd in cmds:
         if cmd == 'ping':
             if len(args) == 1:
                 log(f"Please specify an IP address or parameter for this command. Do {Colors.blue}{Colors.bold}ping -h{Colors.reset} to get help on this command.")
             else:
                 ping(substring)
+        elif cmd == 'array':
+            if len(args) < 3:
+                log("Incorrect Syntax. Usage: 'array <list name> <item>'")
+            else:
+                try:
+                    log(globals(args[1])[int(args[2])])
+                except Exception as e:
+                    log("Error.")
+                    debug(e)
+        elif cmd == 'import':
+            if len(args) > 1:
+                print("this is a test message")
         elif cmd == 'help':
             log('PyTerm commands: ' + ", ".join(cmds))
         elif cmd == 'sys':
@@ -237,7 +282,8 @@ while True:
                         else:
                             args[3] = '"' + args[3] + '"'
                     exec(args[1] + ' = ' + str(args[3]))
-                except:
+                except Exception as err:
+                    debug(err)
                     log("Something happened. Maybe check the syntax?")
         elif cmd == "vars":
             print("---Variables---")
@@ -246,11 +292,14 @@ while True:
             if len(args) == 1:
                 log("Please specify a variable name to consult.")
             else:
-                try:
-                    log(str(type(globals()[args[1]])) + " " + str(globals()[args[1]]))
-                except Exception as ex:
-                    log("Something happened when viewing this variable. Maybe it doesn't exist?")
-                    debug(ex)
+                if args[1] in globals():
+                    try:
+                        log("[" + str(type(globals()[args[1]])) + "] " + str(globals()[args[1]]))
+                    except Exception as ex:
+                        debug(ex)
+                        log("Something happened when viewing this variable. Use \"debug\" to see the error.")
+                else:
+                    log(f"That variable {Colors.red}does not{Colors.reset} exist. Maybe you've misspelled it.")
         elif cmd == "restart":
             log("Restarting PyTerm...")
             os.execv(sys.executable, ["python3"] + [installloc])
@@ -265,44 +314,67 @@ while True:
         elif cmd == "fetch":
             if len(args) == 1:
                 log("Please specify a link to a file hosted online to fetch.")
-            else:
+            else:                    
                 debug("Fetching file...")
                 if substring.startswith("http://"):
                     log("To fetch, you need a secure protocol connection.")
                     log("In short, fetch doesn't support http:// for security measures.")
                     debug("Failed to fetch file.")
+                    return "false"
                 else:
                     try:
-                        if substring == "versions":
+                        if substring.replace(' -s', '') == "versions":
                             with urllib.request.urlopen(versionsurl) as data:
                                 debug("Fetched.")
                                 debug("Printing...")
-                                log("Data:")
-                                print(data.read())
-                        elif substring == "pyterm":
+                                if not args[len(args) - 1] == "-s":
+                                    log("Data:")
+                                    print(data.read())
+                                return str(data.read())
+                        elif substring.replace(' -s', '') == "pyterm":
                             with urllib.request.urlopen(updateurl) as data:
                                 debug("Fetched.")
                                 debug("Printing...")
-                                log("Data:")
-                                print(data.read())
+                                if not args[len(args) - 1] == "-s":
+                                    log("Data:")
+                                    print(data.read())
+                                return str(data.read())
                         else:
-                            if substring.startswith("https://"):
-                                with urllib.request.urlopen(substring) as data:
+                            if substring.replace(' -s', '').startswith("https://"):
+                                with urllib.request.urlopen(substring.replace(' -s', '')) as data:
                                     debug("Fetched.")
                                     debug("Printing...")
-                                    log("Data:")
-                                    print(data.read())
+                                    if not args[len(args) - 1] == "-s":
+                                        log("Data:")
+                                        print(data.read())
+                                    return str(data.read())
                             else:
-                                with urllib.request.urlopen("https://" + substring) as data:
+                                with urllib.request.urlopen("https://" + substring.replace(' -s', '')) as data:
                                     debug("Fetched.")
                                     debug("Printing...")
-                                    log("Data:")
-                                    print(data.read())
-                    except:
-                        debug(f"{Colors.red}Failed to fetch file.")
+                                    if not args[len(args) - 1] == "-s":
+                                        log("Data:")
+                                        print(data.read())
+                                    return str(data.read())
+                    except Exception as err:
+                        debug(f"{Colors.red}Failed to fetch file.{Colors.reset}")
+                        debug(err)
                         log(f"There was an {Colors.red}error{Colors.reset} when fetching the file. Maybe check the URL provided?")
         elif cmd == "echo":
-            print(substring)
+            out = []
+            for i in range(len(args)):
+                a = args[i]
+                if i > 0:
+                    if a.startswith('v:'):
+                        try:
+                            out.append(str(globals()[a[2::]]))
+                        except Exception as e:
+                            debug("failed echo")
+                            debug(e)
+                            break
+                    else:
+                        out.append(a)
+            print(" ".join(out))
         elif cmd == "clear":
             if OS == "Windows":
                 os.system('cls')
@@ -329,18 +401,16 @@ while True:
                     f.write(content)
         elif cmd == "run":
             if len(args) == 1:
-                log("Please specify a python file to run.")
+                log("Please specify a PTP (PyTerm Program) file to run.")
             else:
                 onlyfiles = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
                 if substring in onlyfiles:
-                    if os.path.splitext(substring)[1] == '.py':
-                        with open(substring, "r") as file:
-                            content = file.read()
-                        subprocess.Popen(content)
+                    if os.path.splitext(substring)[1] == '.ptp':
+                        run_prg(substring)
                     else:
-                        log(f"{Colors.red}Cannot{Colors.reset} run file that isn't in .py file format!")
+                        log(f"{Colors.red}Cannot{Colors.reset} run file that isn't in the .ptp file format!")
                 else:
-                    log("Error 02 - File not found")
+                    log(f'{formatErrorCode('02')}')
         elif cmd == "dir":
             if len(args) == 1:
                 onlyfiles = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
@@ -367,7 +437,7 @@ while True:
                     if len(onlyfiles) == 0 and len(onlyfolders) == 0:
                        print("(Empty)")
                 else:
-                    log("Error 02.5 - Directory not found")
+                    log(f'{formatErrorCode('02.5')}')
         elif cmd == "cd":
             if len(args) == 1:
                 log("Please specify a directory to go to.")
@@ -385,15 +455,17 @@ while True:
                             os.chdir(os.getcwd() + "/" + substring)
                         else:
                             onlyfolders = [f for f in os.listdir(dir) if os.path.isdir(os.path.join(dir, f))]
+                            targetdir = os.getcwd() + "/" + substring
                             if substring in onlyfolders:
-                                os.chdir(os.getcwd() + "/" + substring)
+                                os.chdir(targetdir)
                                 dir = os.getcwd()
                             else:
                                 try:
-                                    os.chdir(substring)
+                                    os.chdir(targetdir)
                                     dir = os.getcwd()
-                                except:
-                                    log("Error 02.5 - Directory not found")
+                                except Exception as e:
+                                    log(f'{formatErrorCode('02.5')}')
+                                    debug(e)
         elif cmd == "read":
             if len(args) == 1:
                 log("Please specify a text file to read.")
@@ -407,7 +479,7 @@ while True:
                     else:
                         log("File must be a .txt file!")
                 else:
-                    log("Error 02 - File not found")
+                    log(f'{formatErrorCode('02')}')
         elif cmd == "login":
             if on_su:
                 if OS == "Windows":
@@ -416,7 +488,6 @@ while True:
                     users = [f for f in os.listdir("/home/") if os.path.isdir(os.path.join(dir, f))]
                 else:
                     log(f"{Colors.red}Error{Colors.reset} - Incompatible OS.")
-                    break
                 if len(args) == 1:
                     log("Please specify a user account to go to the directory of. Users: " + ", ".join(users))
             else:
@@ -439,19 +510,31 @@ while True:
                     except:
                         log("Cannot read this file.")
                 else:
-                    log("Error 02 - File not found")
+                    log(f'{formatErrorCode('02')}')
         elif cmd == "create":
             if len(args) == 1:
                 log("Please specify a file name to make a text file of.")
             else:
-                if args[1] + ".txt" in os.listdir():
-                    log("You can't create a file with an existing file name! Use \"write\" to edit that file!")
-                else:
+                if args[1] == "-f":
                     if os.access(dir, os.W_OK):
-                        with open(args[1] + ".txt", "w") as f:
-                            f.write("")
+                        with open(args[3] + ".txt", "w") as f:
+                            f.write(execute("fetch " + args[2] + " -s"))
                     else:
                         log("Cannot create file on a read-only directory.")
+                else:
+                    if args[1] + ".txt" in os.listdir():
+                        log("You can't create a file with an existing file name! Use \"write\" to edit that file!")
+                    else:
+                        if os.access(dir, os.W_OK):
+                            with open(args[1] + ".txt", "w") as f:
+                                f.write("")
+                        else:
+                            log("Cannot create file on a read-only directory.")
+        elif cmd == "rename":
+            if len(args) < 3:
+                log("Please specify a file to rename and what you'll rename it to. Syntax: rename (file name) (file name to rename to)")
+            else:
+                os.rename(args[1], args[2])
         elif cmd == "mkdir":
             if len(args) == 1:
                 log("Please specify a folder name to create.")
@@ -483,7 +566,7 @@ while True:
                         else:
                             log("Cannot delete directory on a read-only directory.")
                     else:
-                        log("Error 02.5 - Directory not found")
+                        log(f'{formatErrorCode('02.5')}')
         elif cmd == "write":
             if len(args) < 3:
                 log(f"Please specify a file and contents to write to. Usage: {Colors.blue}{Colors.bold}write <file> <contents, can have spaces>{Colors.reset}")
@@ -526,7 +609,7 @@ while True:
                         if substring in onlyfiles:
                             os.remove(args[1])
                         else:
-                            log("Error 02 - File not found")
+                            log(f'{formatErrorCode('02')}')
                     else:
                         log("Cannot delete file on a read-only directory")
     else:
@@ -537,12 +620,50 @@ while True:
             os.chdir(defaultdir)
             dir = os.getcwd()
         elif cmd == "@echo":
-            if echo:
-                print("@echo - Command echo is now off.")
-                echo = False
-                print(f"(run {Colors.blue}{Colors.bold}@echo{Colors.reset} again to turn on command echo)")
-            else:
-                echo = True
-                print("@echo - Command echo is now on.")
+            if len(args) > 1:
+                if args[1] == "off":
+                    log("Command echo is now off.")
+                    echo = False
+                elif args[1] == "on":
+                    echo = True
+                    log("Command echo is now on.")
+        elif cmd == "-@echo":
+            if len(args) > 1:
+                if args[1] == "off":
+                    echo = False
+                elif args[1] == "on":
+                    echo = True
+        elif cmd == "":
+            print(f"",end="")
         else:
-            print(f"The command {Colors.blue}{Colors.bold}" + cmd + f"{Colors.reset} does not exist. Use {Colors.bold}{Colors.blue}help{Colors.reset} to get a list of commands.")
+            log(f"The command {Colors.blue}{Colors.bold}" + cmd + f"{Colors.reset} does not exist. Use {Colors.bold}{Colors.blue}help{Colors.reset} to get a list of commands.")
+finishedrunning = True
+execs = 0
+def run_prg(file):
+    global finishedrunning
+    global echo
+    global execs
+    if not finishedrunning:
+        execs += 1
+    if execs < 21:
+        with open(file, "r") as ptp:
+            content = ptp.read()
+        cmds = content.split('\n')
+        finishedrunning = False
+        execute('let __filename = ' + file)
+        for cmd in cmds:
+            execute(cmd)
+        finishedrunning = True
+        if echo == False:
+            echo = True
+    else:
+        execute("echo Program exited because of infinite loop.")
+onlyfiles = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f))]
+if 'startup.ptp' in onlyfiles:
+    run_prg('./startup.ptp')
+while True:
+    if echo:
+        prompt = input(dir + "> ")
+    else:
+        prompt = input("")
+    execute(prompt)
