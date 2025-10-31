@@ -1,6 +1,6 @@
 # Note
 This repository has now stopped being used in the meantime.
-You can get the latest version of PyTerm [here](https://ccjt.sad.ovh/api/programs/pyterm)
+You can get the latest version of PyTerm [here](https://ccjt.sad.ovh/api/programs/pyterm).
 # PyTerm
 PyTerm is a basic Python3 based shell that runs in only 1 file, and is meant to stay that way until it needs to change.
 PyTerm is a side-project of mine that I'll be working on, if I'm not focusing on Teal in that moment.
