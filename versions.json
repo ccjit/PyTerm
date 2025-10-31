@@ -1,7 +1,7 @@
 {
-  "latest":"0.1.5",
-  "previous":["0.1.4 (lost)", "0.1.3", "0.1.3-beta", "0.1.3-alpha2", "0.1.3-alpha", "0.1.2", "0.1.2-alpha", "0.1.0-alpha", "0.0.12-alpha", "0.0.11-alpha", "0.0.10-alpha", "0.0.9-alpha", "0.0.8-alpha", "0.0.7-alpha", "0.0.6.5-alpha", "0.0.6-alpha", "0.0.5-alpha", "0.0.4.12-alpha", "0.0.4.11-alpha", "0.0.4.10-alpha", "0.0.4.9-alpha", "0.0.4.8-alpha", "0.0.4.7-alpha", "0.0.4.6-alpha", "0.0.4.5-alpha", "0.0.4-alpha", "0.0.3-alpha", "0.0.2-alpha", "0.0.1-alpha"],
-  "soon":"0.1.6",
-  "changelog": "Improved echo command to now use variables. Echo a variable by putting \"v:(variable name)\" in your echo text.",
+  "latest":"0.2.0",
+  "previous":["0.1.6", "0.1.4 (lost)", "0.1.3", "0.1.3-beta", "0.1.3-alpha2", "0.1.3-alpha", "0.1.2", "0.1.2-alpha", "0.1.0-alpha", "0.0.12-alpha", "0.0.11-alpha", "0.0.10-alpha", "0.0.9-alpha", "0.0.8-alpha", "0.0.7-alpha", "0.0.6.5-alpha", "0.0.6-alpha", "0.0.5-alpha", "0.0.4.12-alpha", "0.0.4.11-alpha", "0.0.4.10-alpha", "0.0.4.9-alpha", "0.0.4.8-alpha", "0.0.4.7-alpha", "0.0.4.6-alpha", "0.0.4.5-alpha", "0.0.4-alpha", "0.0.3-alpha", "0.0.2-alpha", "0.0.1-alpha"],
+  "soon":"0.2.1",
+  "changelog": "Moved updates and versions file from GitHub to https://ccjt.sad.ovh/api/programs/pyterm and https://ccjt.sad.ovh/api/pyterm/versions respectively, made variables summonable in any command by using `v:{(variable name)}`, made programs runnable by just simply typing their filename as a command, improved `run`, separated programs from files in `dir`, added `exit` command to exit the current running program, and added `skip` command to skip the next command.",
   "planned":"'perms' command to see permissions.\nFixed update day for automatic updates."
 }
