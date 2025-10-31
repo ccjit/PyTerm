@@ -40,8 +40,8 @@ defaultdir = vars.defaultdir
 installloc = vars.installloc
 filename = vars.filename
 on_su = vars.on_su
-updateurl = "https://raw.githubusercontent.com/ccjit/PyTerm/refs/heads/main/main.py"
-versionsurl = "https://raw.githubusercontent.com/ccjit/PyTerm/refs/heads/main/versions.json"
+updateurl = "https://ccjt.sad.ovh/api/programs/pyterm"
+versionsurl = "https://ccjt.sad.ovh/api/pyterm/versions"
 isupdateday = False
 print("OS: " + OS)
 print("Directory: " + os.getcwd())
